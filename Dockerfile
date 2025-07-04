@@ -1,9 +1,7 @@
 FROM ghcr.io/testssl/testssl.sh:3.2
 
-# 設定工作目錄
-WORKDIR /app
-
 COPY testssl-webui /usr/local/bin/testssl-webui
+COPY public /app/public
 
 EXPOSE 8081
 

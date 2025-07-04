@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	port = 8081
+	port                = 8081
+	staticFilesBasePath = "./public" // <--- 預設值，用於開發
 )
 
 type TestSSLRequest struct {
@@ -32,7 +33,7 @@ type TestSSLResponse struct {
 
 func main() {
 	router := gin.Default()
-	router.Static("/", "./public")
+	router.Static("/", staticFilesBasePath)
 
 	apis := router.Group("/api")
 	{
