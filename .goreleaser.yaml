@@ -27,12 +27,14 @@ release:
     owner: vulcanshen
     name: testssl-webui
   name_template: "Release {{ .Tag }}"
+  skip_upload: true
 
 dockers:
   - id: "testssl-webui"
     use: buildx
     goarch: amd64
     image_templates:
+      - "vulcanshen2304/testssl-webui:latest"
       - "vulcanshen2304/testssl-webui:{{ .Version }}"
     dockerfile: Dockerfile
     build_flag_templates:
@@ -47,11 +49,6 @@ dockers:
     extra_files:
       - README.md
       - LICENSE
-
-
-docker_manifests:
-  - name_template: "vulcanshen2304/testssl-webui:{{ .Version }}"
-  - name_template: "vulcanshen2304/testssl-webui:latest"
 
 
 snapshot:
