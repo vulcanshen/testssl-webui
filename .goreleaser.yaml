@@ -47,17 +47,15 @@ dockers:
     extra_files:
       - README.md
       - LICENSE
-    push_templates:
-      - "docker.io/vulcanshen2304/testssl-webui:{{ .Tag }}"
-      - "docker.io/vulcanshen2304/testssl-webui:latest"
 
-#docker_manifests:
-#  - name_template: "vulcanshen2304/testssl-webui:{{ .Version }}"
-#    image_templates:
-#      - "vulcanshen2304/testssl-webui:{{ .Version }}-amd64"
-#  - name_template: "vulcanshen2304/testssl-webui:latest"
-#    image_templates:
-#      - "vulcanshen2304/testssl-webui:{{ .Version }}-amd64"
+
+docker_manifests:
+  - name_template: "vulcanshen2304/testssl-webui:{{ .Version }}"
+    image_templates:
+      - "vulcanshen2304/testssl-webui:{{ .Version }}"
+  - name_template: "vulcanshen2304/testssl-webui:latest"
+    image_templates:
+      - "vulcanshen2304/testssl-webui:{{ .Version }}"
 
 
 snapshot:
