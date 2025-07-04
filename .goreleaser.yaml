@@ -1,0 +1,110 @@
+version: 2
+
+project_name: testssl-webui
+
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod tidy
+
+universal_binaries:
+  - replace: false
+
+builds:
+  - id: "build"
+    binary: "testssl-webui"
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+release:
+  github:
+    owner: vulcanshen
+    name: testssl-webui
+  name_template: "Release {{ .Tag }}"
+
+dockers:
+  - id: "testssl-webui"
+    use: buildx
+    goarch: amd64
+    image_templates:
+      - "vulcanshen2304/testssl-webui:{{ .Version }}"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.description=Designed to orchestrate and execute a series of commands based on a declarative YAML configuration file."
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+    extra_files:
+      - README.md
+      - LICENSE
+    push_templates:
+      - "docker.io/vulcanshen2304/testssl-webui:{{ .Tag }}"
+      - "docker.io/vulcanshen2304/testssl-webui:latest"
+
+#docker_manifests:
+#  - name_template: "vulcanshen2304/testssl-webui:{{ .Version }}"
+#    image_templates:
+#      - "vulcanshen2304/testssl-webui:{{ .Version }}-amd64"
+#  - name_template: "vulcanshen2304/testssl-webui:latest"
+#    image_templates:
+#      - "vulcanshen2304/testssl-webui:{{ .Version }}-amd64"
+
+
+snapshot:
+  version_template: "{{ .Version }}-snapshot"
+
+gomod:
+  proxy: true
+
+report_sizes: true
+
+
+changelog:
+  sort: asc
+  use: github
+  format: "{{ .SHA }}: {{ .Message }}{{ with .AuthorUsername }} (@{{ . }}){{ end }}"
+  filters:
+    exclude:
+      - "^test:"
+      - "^test\\("
+      - "^chore: update$"
+      - "^chore: docs$"
+      - "^docs: update$"
+      - "^chore: schema$"
+      - "^chore: typo$"
+      - "^chore: auto-update generated files$"
+      - "^chore: update schema$"
+      - "^chore: schema update$"
+      - "^chore\\(deps\\): "
+      - "^(build|ci): "
+      - "merge conflict"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: "New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 100
+    - title: "Security updates"
+      regexp: '^.*?sec(\(.+\))??!?:.+$'
+      order: 150
+    - title: "Bug fixes"
+      regexp: '^.*?(fix|refactor)(\(.+\))??!?:.+$'
+      order: 200
+    - title: "Documentation updates"
+      regexp: ^.*?docs?(\(.+\))??!?:.+$
+      order: 400
+    - title: Other work
+      order: 9999
