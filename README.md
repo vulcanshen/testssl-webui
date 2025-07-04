@@ -23,15 +23,28 @@ To address these pain points, testssl-webui was created.
 
 > testssl-webui aims to provide users with a convenient, secure, and fully-featured web-based testssl.sh experience, making TLS/SSL security checks easily accessible.
 
-
 ## How to Use
 
-To get started with testssl-webui, simply run the Docker container and access the web interface:
+To get testssl-webui up and running, simply use a Docker command.
+
+To run in the foreground (showing logs):
 
 ```sh
 docker run -it --rm --platform=linux/amd64 -p 8081:8081 vulcanshen2304/testssl-webui
 ```
 
-Once the container is running, open your web browser and navigate to: http://localhost:8081
+To run in the background (detached mode):
+
+```sh
+docker run -d --rm --platform=linux/amd64 -p 8081:8081 vulcanshen2304/testssl-webui
+```
+
+### Important Notes:
+
+- If you're using an ARM-based CPU (like Apple M1/M2 Macs, Raspberry Pi, etc.), make sure to include the `--platform=linux/amd64` flag. This tells Docker to perform cross-architecture emulation.
+
+- The `-p 8081:8081` flag maps your host machine's port 8081 to the container's internal port 8081.
+
+- Once the container is running, open your web browser and go to: http://localhost:8081
 
 You can now start using testssl-webui for your TLS/SSL scanning!
