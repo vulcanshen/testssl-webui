@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	port = 6666
+	port = 8081
 )
 
 type TestSSLRequest struct {
@@ -39,7 +39,6 @@ func main() {
 		apis.POST("/test", streamTestURIHandler)
 	}
 
-	log.Printf("Server is running on port %d\n", port)
 	log.Fatal(router.Run(fmt.Sprintf(":%d", port)))
 
 }

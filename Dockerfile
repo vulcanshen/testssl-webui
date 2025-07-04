@@ -5,6 +5,6 @@ WORKDIR /app
 
 COPY testssl-webui /usr/local/bin/testssl-webui
 
-EXPOSE 6666
+EXPOSE 8081
 
 ENTRYPOINT ["/usr/local/bin/testssl-webui"]
