@@ -36,11 +36,6 @@ func main() {
 	router := gin.Default()
 	router.Static("/", staticFilesBasePath)
 
-	apis := router.Group("/api")
-	{
-		apis.POST("/test", streamTestURIHandler)
-	}
-
 	router.POST("/scan-report", func(c *gin.Context) {
 		targetUrl := c.PostForm("targetUrl")
 		if targetUrl == "" {
