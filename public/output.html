@@ -112,9 +112,18 @@
           console.log('complete', parsedData);
         } break;
         case "error": {
-          let parsedData = JSON.parse(dataStr);
-          logMessage(`<div class="error-message">[Error]: ${parsedData}</div>`, 'error-message');
-        } break;
+          logMessage(`<div class="error-message">[Error]: ${dataStr}</div>`, 'error-message');
+          if (dataStr.includes("testssl.sh" && dataStr.includes("exited"))) {
+            const actionButton = document.getElementById('action-button');
+            const actionButtonText = document.getElementById('action-button-text');
+            document.getElementById('action-button-spinner').remove();
+            actionButtonText.innerText = "Request Scan Error";
+            actionButton.classList.remove('btn-outline-secondary')
+            actionButton.classList.add('btn-outline-danger');
+            actionButton.insertAdjacentHTML('afterbegin', '<i class="bi bi-exclamation-octagon-fill"></i>');
+          }
+        }
+          break;
         case "ping":
           break;
         default:
@@ -122,7 +131,7 @@
       }
 
     } catch (e) {
-      console.error("Error parsing SSE event data (non-JSON):", e, "Raw data:", dataStr);
+      console.error("Error parsing SSE event data (non-JSON):", e, "Raw data:", dataStr, 'event:', event);
     }
   }
   function logMessage(message, className = 'output-line') {
