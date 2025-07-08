@@ -1,252 +1,119 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL TestSSL</title>
-    <style>
-        /* 新增一些樣式來區分不同的輸出類型 */
-        .output-line {
-            white-space: pre-wrap; /* 保持換行 */
-            word-break: break-all; /* 防止過長的單詞溢出 */
-            font-family: monospace; /* 等寬字體 */
-        }
-        .status-message {
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        .error-message {
-            color: red;
-            font-weight: bold;
-        }
-        .warning-message {
-            color: orange;
-        }
-        #resultOutput {
-            background-color: #f8f8f8;
-            padding: 15px;
-            border-radius: 5px;
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            font-family: Helvetica, Arial,sans-serif;
-            font-size: 16px !important;
-            line-height: 1.5 !important;
-            letter-spacing: normal;
-            word-spacing: normal;
-            white-space: normal;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testssl.sh WebUI</title>
+  <link href="bootstrap.min.css" rel="stylesheet"  crossorigin="anonymous">
+  <link rel="stylesheet" href="bootstrap-icons.min.css">
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-        /*@media print {*/
-        /*    #resultOutput {*/
-        /*        max-height: none;*/
-        /*        overflow-y: visible;*/
-        /*    }*/
-        /*}*/
-    </style>
-    <script src="jspdf.umd.min.js"></script>
-    <script src="html2canvas.min.js"></script>
+    .main-content-wrapper {
+      margin-top: 15vh;
+      max-width: 584px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .input-group .form-control,
+    .input-group .input-group-text,
+    .input-group .btn {
+      border-radius: 0;
+    }
+
+    .input-group .input-group-text {
+      border-top-left-radius: 24px !important;
+      border-bottom-left-radius: 24px !important;
+      background-color: transparent; /* 背景透明 */
+      border-right: none;
+      color: #70757a;
+    }
+
+    .input-group .form-control {
+      border-left: none;
+      border-top-right-radius: 24px !important;
+      border-bottom-right-radius: 24px !important;
+    }
+
+    .input-group .btn {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+    .form-control:focus {
+      outline: none !important; /* 確保移除瀏覽器預設的 outline */
+      box-shadow: none !important; /* 移除 Bootstrap 的藍色陰影效果 */
+      border-color: #ced4da; /* 可選：將邊框顏色恢復為非焦點狀態的顏色，避免邊框變色 */
+    }
+
+    #start-test-button {
+      border-radius: 24px !important;
+      padding: 10px 20px;
+    }
+
+
+    .description-github-section {
+      margin-top: 3rem; /* 與上方內容的間距 */
+      max-width: 650px; /* 描述區塊可以稍微寬一點 */
+      width: 90%;
+      text-align: left; /* 讓文字靠左對齊 */
+      color: #5f6368; /* 灰色文字 */
+      font-size: 0.95rem;
+      line-height: 1.6;
+      border-top: 1px solid #eee; /* 頂部邊界線 */
+      padding: 2rem 1.5rem 1.5rem;
+      margin-bottom: 3rem; /* 與底部間距 */
+    }
+    .description-github-section a {
+      color: #4285f4; /* 連結顏色 */
+      text-decoration: none;
+    }
+    .description-github-section a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-    <h1>URL TestSSL</h1>
-    <form id="urlForm">
-        <label for="urlInput">URL：</label><br>
-        <input type="url" id="urlInput" placeholder="https://www.google.com" required><br>
-        <button type="submit" id="startButton">Start Test</button>
-    </form>
-    <p id="loading" style="display: none;">Testing...</p>
-    <p id="overallStatus" class="status-message"></p>
-    <hr>
-    <h2>Result：</h2>
-    <button type="submit" id="exportButton" disabled="disabled">Export Result</button>
-    <pre id="resultOutput"></pre>
+
+<div class="p-3 main-content-wrapper">
+  <h2 class="text-secondary mb-4">Testssl.sh WebUI</h2>
+
+  <form action="/scan-report" method="post" target="_blank">
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="search-icon">
+            <i class="bi bi-search"></i>
+        </span>
+      <input type="text" class="form-control"
+             placeholder="https://www.example.com"
+             aria-label="Target URL"
+             aria-describedby="search-icon"
+             name="targetUrl"
+             id="targetUrl"
+             required>
+    </div>
+
+    <button class="btn btn-outline-primary" type="submit" id="start-test-button">Start Test</button>
+  </form>
 </div>
 
-<script>
-    const urlForm = document.getElementById('urlForm');
-    const resultOutput = document.getElementById('resultOutput')
-    const overallStatus = document.getElementById('overallStatus');
-    const exportButton = document.getElementById('exportButton');
-    window.pdf = new jspdf.jsPDF({
-        unit: 'pt',
-        format: 'a2',
-        orientation: 'portrait',
-    })
-    ;
+<div class="description-github-section">
+  <p>
+    <a href="https://github.com/vulcanshen/testssl-webui" target="_blank" rel="noopener noreferrer">
+      <i class="bi bi-github"></i> testssl-webui
+    </a> draws inspiration from the powerful <a href="https://github.com/testssl/testssl.sh" target="_blank" rel="noopener noreferrer">testssl.sh</a> command-line tool and the user-friendly <a href="https://www.poodlescan.com/testssl.sh/" target="_blank" rel="noopener noreferrer">PoodleScan</a> online service.
+  </p>
+  <p>It aims to provide a convenient web interface for TLS/SSL configuration analysis, especially for internal networks where public exposure isn't desired.</p>
 
-    function outputToPdf() {
-        let element = document.getElementById('resultOutput');
+</div>
 
-        const urlInput = document.getElementById('urlInput');
-
-        let target = encodeURI(urlInput.value);
-
-        let originalMaxHeight = resultOutput.style.maxHeight;
-        let originalOverflowY = resultOutput.style.overflowY;
-
-        resultOutput.style.maxHeight = 'none';
-        resultOutput.style.overflowY = 'visible';
-        window.pdf
-            .html(element, {
-                callback: function (doc) {
-                    doc.save('testssl_' + target + '.pdf');
-                    resultOutput.style.maxHeight = originalMaxHeight;
-                    resultOutput.style.overflowY = originalOverflowY;
-                },
-                autoPaging: 'text'
-            });
-    }
-
-    exportButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        outputToPdf();
-    });
-
-    urlForm.addEventListener('submit', async function(event) {
-        event.preventDefault();
-
-        const urlInput = document.getElementById('urlInput');
-        const startButton = document.getElementById('startButton');
-        const loading = document.getElementById('loading');
-
-        startButton.disabled = true;
-        resultOutput.innerHTML = '';
-        overallStatus.textContent = '';
-        loading.style.display = 'block';
-        urlInput.disabled = true;
-        const urlToTest = urlInput.value;
-
-        try {
-            const response = await fetch('/api/test', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ uri: urlToTest })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                overallStatus.className = 'status-message error-message';
-                overallStatus.textContent = `Test failed (${response.status}): ${errorData.error || 'Unknown error'}`;
-                loading.style.display = 'none';
-                startButton.disabled = false;
-                urlInput.disabled = false;
-                return;
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-            let buffer = "";
-
-            const processStream = async () => {
-                let currentEvent = "message"; // 預設事件類型
-                let currentData = "";        // 累計數據
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        if (buffer.length > 0) {
-                            handleSSEEvent(currentEvent, currentData + buffer);
-                        }
-                        logMessage("--- Test completed ---", "status-message");
-                        loading.style.display = 'none';
-                        startButton.disabled = false;
-                        exportButton.disabled = false;
-                        urlInput.disabled = false;
-                        break;
-                    }
-
-                    buffer += decoder.decode(value, { stream: true });
-
-                    let newlineIndex;
-                    while ((newlineIndex = buffer.indexOf('\n')) > -1) {
-                        const line = buffer.substring(0, newlineIndex).trim();
-                        buffer = buffer.substring(newlineIndex + 1);
-
-                        if (line.startsWith("event:")) {
-                            currentEvent = line.substring(6).trim();
-                        } else if (line.startsWith("data:")) {
-                            currentData += line.substring(5).trim();
-                        } else if (line === "") {
-
-                            if (currentData !== "") {
-                                handleSSEEvent(currentEvent, currentData);
-                            }
-                            currentEvent = "";
-                            currentData = "";
-                        } else if (line.startsWith(":")) {
-                            // do nothing
-                        }
-                    }
-                }
-            };
-
-            processStream().catch(err => {
-                console.error('Stream processing error:', err);
-                overallStatus.className = 'status-message error-message';
-                overallStatus.textContent = `Stream processing error: ${err.message}`;
-                loading.style.display = 'none';
-                startButton.disabled = false;
-            });
-
-        } catch (error) {
-            console.error('Fetch/Stream setup error:', error);
-            overallStatus.className = 'status-message error-message';
-            overallStatus.textContent = `Network or server error: ${error.message}`;
-            loading.style.display = 'none';
-            startButton.disabled = false;
-        }
-    });
-
-    function logMessage(message, className = 'output-line') {
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = message;
-        const dom = wrapper.firstChild;
-        dom.className = className;
-        resultOutput.appendChild(dom);
-        // resultOutput.insertAdjacentHTML('beforeend', message);
-        resultOutput.scrollTop = resultOutput.scrollHeight;
-    }
-
-    function handleSSEEvent(event, dataStr) {
-        try {
-            switch (event) {
-                case "html":
-                    logMessage(dataStr);
-                    break;
-                case "message":
-                case "complete": {
-                    let parsedData = JSON.parse(dataStr);
-                    if (parsedData.status === "success") {
-                        overallStatus.className = 'status-message';
-                        overallStatus.textContent = parsedData.message;
-                    } else if (parsedData.status === "error") {
-                        overallStatus.className = 'status-message error-message';
-                        overallStatus.textContent = `error: ${parsedData.message}`;
-                    } else if (parsedData.status === "warning") {
-                        overallStatus.className = 'status-message warning-message';
-                        overallStatus.textContent = `warning: ${parsedData.message}`;
-                    }
-                } break;
-                case "error": {
-                    let parsedData = JSON.parse(dataStr);
-                    logMessage(`<div class="error-message">[Error]: ${parsedData}</div>`, 'error-message');
-                    overallStatus.className = 'status-message error-message';
-                    overallStatus.textContent = `error: ${parsedData}`;
-                } break;
-                case "ping":
-                    break;
-                default:
-                    logMessage(`<div>[Unknown event: ${event}] ${dataStr}</div>`);
-            }
-
-        } catch (e) {
-            console.error("Error parsing SSE event data (non-JSON):", e, "Raw data:", dataStr);
-            logMessage(`<div>[Error parsing SSE event data]: ${dataStr}</div>`);
-        }
-    }
-</script>
+<script src="bootstrap.bundle.min.js"  crossorigin="anonymous"></script>
 </body>
 </html>

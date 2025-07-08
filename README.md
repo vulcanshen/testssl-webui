@@ -1,6 +1,8 @@
-# testssl-webui
+# ![](public/favicon.ico) Testssl.sh WebUI
 
-The testssl-webui project was inspired by two key sources: the powerful [testssl.sh](https://github.com/testssl/testssl.sh) tool and the convenient [PoodleScan](https://www.poodlescan.com/testssl.sh/) service.
+This project was inspired by two key sources: 
+
+the powerful [testssl.sh](https://github.com/testssl/testssl.sh) tool and the convenient [PoodleScan](https://www.poodlescan.com/testssl.sh/) service.
 
 While testssl.sh is an extremely capable TLS/SSL configuration analysis tool, its command-line interface isn't user-friendly for non-technical individuals. Online services like PoodleScan, despite offering a convenient web interface, require the target to have a public URL, which is a limitation for internal networks or services that shouldn't be exposed.
 

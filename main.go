@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -22,7 +23,7 @@ var (
 )
 
 type TestSSLRequest struct {
-	URI string `json:"uri" binding:"required"` // binding:"required" 表示此欄位是必需的
+	Target string `json:"target" binding:"required"` // binding:"required" 表示此欄位是必需的
 }
 
 type TestSSLResponse struct {
@@ -40,6 +41,20 @@ func main() {
 		apis.POST("/test", streamTestURIHandler)
 	}
 
+	router.POST("/scan-report", func(c *gin.Context) {
+		targetUrl := c.PostForm("targetUrl")
+		if targetUrl == "" {
+			c.HTML(http.StatusBadRequest, "index.html", gin.H{
+				"error": "Target URL is required",
+			})
+			return
+		}
+
+		c.Redirect(http.StatusFound, fmt.Sprintf("/output.html?target=%s", url.QueryEscape(targetUrl)))
+	})
+
+	router.POST("/scan", streamTestURIHandler)
+
 	log.Fatal(router.Run(fmt.Sprintf(":%d", port)))
 
 }
@@ -51,10 +66,10 @@ func streamTestURIHandler(c *gin.Context) {
 		return
 	}
 
-	uri := reqBody.URI
+	uri := reqBody.Target
 
 	if uri == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Target URI is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Target Target is required"})
 		return
 	}
 	if !strings.HasPrefix(uri, "http://") && !strings.HasPrefix(uri, "https://") {
@@ -139,7 +154,7 @@ func streamTestURIHandler(c *gin.Context) {
 				case <-ctx.Done():
 					return
 				default:
-					outputChan <- "<div>" + scanner.Text() + "</div>"
+					outputChan <- scanner.Text()
 				}
 			}
 			if err := scanner.Err(); err != nil && err != io.EOF {

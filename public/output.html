@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testssl.sh WebUI</title>
+  <link href="bootstrap.min.css" rel="stylesheet"  crossorigin="anonymous">
+  <link rel="stylesheet" href="bootstrap-icons.min.css">
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .main-content-wrapper {
+      margin-top: 5vh;
+      min-width: 80%;
+      width: 80%;
+      text-align: center;
+    }
+
+    .input-group .form-control,
+    .input-group .input-group-text,
+    .input-group .btn {
+      border-radius: 0;
+    }
+
+    .input-group .input-group-text {
+      border-top-left-radius: 24px !important;
+      border-bottom-left-radius: 24px !important;
+      background-color: transparent; /* 背景透明 */
+      border-right: none;
+      color: #70757a;
+    }
+
+    .input-group .form-control {
+      border-left: none;
+      border-top-right-radius: 24px !important;
+      border-bottom-right-radius: 24px !important;
+    }
+
+    .input-group .btn {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+
+    .main-content-wrapper > .btn {
+      border-radius: 24px !important;
+      padding: 10px 20px;
+    }
+
+
+    .description-github-section {
+      margin-top: 3rem;
+      max-width: 650px;
+      width: 90%;
+      text-align: left;
+      color: #5f6368;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      border-top: 1px solid #eee;
+      padding: 2rem 1.5rem 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .description-github-section a {
+      color: #4285f4;
+      text-decoration: none;
+    }
+    .description-github-section a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<div class="p-3 main-content-wrapper">
+  <h6 class="text-secondary mb-4">Testssl.sh WebUI - <span id="targetUrlDisplay">https://www.google.com</span></h6>
+  <div class="shadow p-3 mb-5 bg-body rounded text-start" id="scanResult"></div>
+  <button class="btn btn-outline-secondary" type="button" id="action-button" onclick="window.print()" disabled>
+    <span id="action-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+
+    <span id="action-button-text">State</span>
+  </button>
+</div>
+
+<div class="description-github-section">
+  <p>
+    <a href="https://github.com/vulcanshen/testssl-webui" target="_blank" rel="noopener noreferrer">
+      <i class="bi bi-github"></i> testssl-webui
+    </a> draws inspiration from the powerful <a href="https://github.com/testssl/testssl.sh" target="_blank" rel="noopener noreferrer">testssl.sh</a> command-line tool and the user-friendly <a href="https://www.poodlescan.com/testssl.sh/" target="_blank" rel="noopener noreferrer">PoodleScan</a> online service.
+  </p>
+  <p>It aims to provide a convenient web interface for TLS/SSL configuration analysis, especially for internal networks where public exposure isn't desired.</p>
+
+</div>
+
+<script src="bootstrap.bundle.min.js"  crossorigin="anonymous"></script>
+<script>
+  function handleSSEEvent(event, dataStr) {
+    try {
+      switch (event) {
+        case "html":
+          logMessage(`<div>${dataStr}</div>`, "");
+          break;
+        case "message":
+        case "complete": {
+          let parsedData = JSON.parse(dataStr);
+          console.log('complete', parsedData);
+        } break;
+        case "error": {
+          let parsedData = JSON.parse(dataStr);
+          logMessage(`<div class="error-message">[Error]: ${parsedData}</div>`, 'error-message');
+        } break;
+        case "ping":
+          break;
+        default:
+          logMessage(`<div>[Unknown event: ${event}] ${dataStr}</div>`);
+      }
+
+    } catch (e) {
+      console.error("Error parsing SSE event data (non-JSON):", e, "Raw data:", dataStr);
+    }
+  }
+  function logMessage(message, className = 'output-line') {
+    const scanResult = document.getElementById('scanResult');
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = message;
+    const dom = wrapper.firstChild;
+    if (className.length > 0) {
+      dom.className = className;
+    }
+
+    dom.classList.add('text-break');
+
+    scanResult.appendChild(dom);
+    window.scrollTo(0, document.documentElement.scrollHeight);
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const targetUrlDisplay = document.getElementById('targetUrlDisplay');
+    const actionButton = document.getElementById('action-button');
+
+    const actionButtonText = document.getElementById('action-button-text');
+
+    actionButtonText.innerText = "Doc Loaded";
+    const scanResult = document.getElementById('scanResult');
+
+    // 從 URL 查詢字串中獲取目標 URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUrl = urlParams.get('target');
+
+    if (!targetUrl) {
+      alert("target is required");
+      return;
+    }
+
+    targetUrlDisplay.textContent = targetUrl;
+    scanResult.textContent = '';
+
+    try {
+      actionButtonText.innerText = "Requesting Scan";
+      const response = await fetch('/scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ target: targetUrl })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Test failed:', errorData);
+        actionButtonText.innerText = "Request Scan Failed";
+        actionButton.classList.remove('btn-outline-secondary')
+        actionButton.classList.add('btn-outline-danger');
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+
+      const processStream = async () => {
+        let currentEvent = "message";
+        let currentData = "";
+        actionButtonText.innerText = "Testing";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            if (buffer.length > 0) {
+              handleSSEEvent(currentEvent, currentData + buffer);
+            }
+
+            actionButton.disabled = false;
+
+            document.getElementById('action-button-spinner').remove();
+            actionButtonText.innerText = "Export PDF";
+            actionButton.classList.remove('btn-outline-secondary')
+            actionButton.classList.add('btn-outline-success');
+            actionButton.insertAdjacentHTML('afterbegin', '<i class="bi bi-printer"></i>');
+
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          let newlineIndex;
+          while ((newlineIndex = buffer.indexOf('\n')) > -1) {
+            const line = buffer.substring(0, newlineIndex).trim();
+            buffer = buffer.substring(newlineIndex + 1);
+
+            if (line.startsWith("event:")) {
+              currentEvent = line.substring(6).trim();
+            } else if (line.startsWith("data:")) {
+              currentData += line.substring(5).trim();
+            } else if (line === "") {
+
+              if (currentData !== "") {
+                handleSSEEvent(currentEvent, currentData);
+              }
+              currentEvent = "";
+              currentData = "";
+            } else if (line.startsWith(":")) {
+              // do nothing
+            }
+          }
+        }
+      };
+
+      processStream().catch(err => {
+        console.error('Stream processing error:', err);
+        actionButtonText.innerText = "Request Scan Error";
+        actionButton.classList.remove('btn-outline-secondary')
+        actionButton.classList.add('btn-outline-danger');
+      });
+
+    } catch (error) {
+      console.error('Fetch/Stream setup error:', error);
+      actionButtonText.innerText = "Request Scan Error";
+      actionButton.classList.remove('btn-outline-secondary')
+      actionButton.classList.add('btn-outline-danger');
+    }
+  });
+</script>
+</body>
+</html>
