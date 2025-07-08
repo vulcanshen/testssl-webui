@@ -101,37 +101,32 @@
 <script src="bootstrap.bundle.min.js"  crossorigin="anonymous"></script>
 <script>
   function handleSSEEvent(event, dataStr) {
-    try {
-      switch (event) {
-        case "html":
-          logMessage(`<div>${dataStr}</div>`, "");
-          break;
-        case "message":
-        case "complete": {
-          let parsedData = JSON.parse(dataStr);
-          console.log('complete', parsedData);
-        } break;
-        case "error": {
-          logMessage(`<div class="error-message">[Error]: ${dataStr}</div>`, 'error-message');
-          if (dataStr.includes("testssl.sh" && dataStr.includes("exited"))) {
-            const actionButton = document.getElementById('action-button');
-            const actionButtonText = document.getElementById('action-button-text');
-            document.getElementById('action-button-spinner').remove();
-            actionButtonText.innerText = "Request Scan Error";
-            actionButton.classList.remove('btn-outline-secondary')
-            actionButton.classList.add('btn-outline-danger');
-            actionButton.insertAdjacentHTML('afterbegin', '<i class="bi bi-exclamation-octagon-fill"></i>');
-          }
+    switch (event) {
+      case "html":
+        logMessage(`<div>${dataStr}</div>`, "");
+        break;
+      case "message":
+      case "complete": {
+        let parsedData = JSON.parse(dataStr);
+        console.log('complete', parsedData);
+      } break;
+      case "error": {
+        logMessage(`<div class="error-message">[Error]: ${dataStr}</div>`, 'error-message');
+        if (dataStr.includes("testssl.sh") && dataStr.includes("exited")) {
+          const actionButton = document.getElementById('action-button');
+          const actionButtonText = document.getElementById('action-button-text');
+          document.getElementById('action-button-spinner').remove();
+          actionButtonText.innerText = "Request Scan Error";
+          actionButton.classList.remove('btn-outline-secondary')
+          actionButton.classList.add('btn-outline-danger');
+          actionButton.insertAdjacentHTML('afterbegin', '<i class="bi bi-exclamation-octagon-fill"></i>');
+          throw new Error(dataStr);
         }
-          break;
-        case "ping":
-          break;
-        default:
-          logMessage(`<div>[Unknown event: ${event}] ${dataStr}</div>`);
-      }
-
-    } catch (e) {
-      console.error("Error parsing SSE event data (non-JSON):", e, "Raw data:", dataStr, 'event:', event);
+      } break;
+      case "ping":
+        break;
+      default:
+        logMessage(`<div>[Unknown event: ${event}] ${dataStr}</div>`);
     }
   }
   function logMessage(message, className = 'output-line') {
