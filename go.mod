@@ -1,4 +1,4 @@
-module github.com/vulcanshen/testssl-webui
+module github.com/vulcanshen/testssl-webui/v2
 
 go 1.24.4
 
