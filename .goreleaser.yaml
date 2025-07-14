@@ -52,7 +52,7 @@ dockers:
     extra_files:
       - README.md
       - LICENSE
-      - public
+      - webui-static
 
 
 snapshot:

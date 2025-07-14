@@ -1,7 +1,7 @@
 FROM ghcr.io/testssl/testssl.sh:3.2
 
 COPY testssl-webui /usr/local/bin/testssl-webui
-COPY public /app/public
+COPY webui-static /app/public
 
 EXPOSE 8081
 

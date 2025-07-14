@@ -19,7 +19,7 @@ import (
 
 var (
 	port                = 8081
-	staticFilesBasePath = "./public" // <--- 預設值，用於開發
+	staticFilesBasePath = "./webui-static" // <--- default value (for develop)
 )
 
 type TestSSLRequest struct {

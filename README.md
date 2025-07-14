@@ -1,4 +1,4 @@
-# ![](public/favicon.ico) Testssl.sh WebUI
+# ![](webui-static/favicon.ico) Testssl.sh WebUI
 
 This project was inspired by two key sources: 
 
